@@ -1076,68 +1076,53 @@ function stopConfetti(){
 })();
 
 /* ══════════════════════════════════════
-   WATCH COMMAND — control por URL
+   WATCH COMMAND — localStorage relay
    
-   Uso desde Atajos / Watch:
-   ?punto=0   → suma punto al jugador 0 (panel izquierdo activo)
-   ?punto=1   → suma punto al jugador 1 (panel derecho activo)
-   ?punto=2   → suma punto al jugador 2 (solo KotC, si está activo)
-   ?deshacer  → deshace el último punto
-   ?estado    → muestra un alert con el marcador actual (para confirmar)
-   
-   Ejemplos de URL completa:
-   https://ovallejf1971.github.io/squashscore/?punto=0
-   https://ovallejf1971.github.io/squashscore/?punto=1
-   https://ovallejf1971.github.io/squashscore/?deshacer
+   La app escucha cambios en localStorage.
+   Cuando el Watch abre ?punto=0, esa
+   pestaña escribe en localStorage y
+   la pestaña del marcador lo detecta
+   instantáneamente sin recargar.
 ══════════════════════════════════════ */
-function handleWatchCommand() {
-  const params = new URLSearchParams(window.location.search);
 
-  if (params.has('punto')) {
-    const idx = parseInt(params.get('punto'));
-    // Esperar a que el partido esté activo (no en setup)
-    // Si está en setup, ignorar silenciosamente
-    if (!document.getElementById('setupScreen').classList.contains('hidden')) return;
-    if (!isNaN(idx)) {
-      // Mapear: punto=0 → active[0], punto=1 → active[1], punto=2 → active[2] si existe
+// La app principal escucha comandos via localStorage
+window.addEventListener('storage', (e) => {
+  if (e.key !== 'squash_cmd') return;
+  if (!e.newValue) return;
+
+  // Ignorar si el partido no ha iniciado
+  if (!document.getElementById('setupScreen').classList.contains('hidden')) return;
+
+  try {
+    const { cmd, idx, ts } = JSON.parse(e.newValue);
+
+    // Ignorar comandos viejos (más de 3 segundos)
+    if (Date.now() - ts > 3000) return;
+
+    if (cmd === 'punto' && idx !== undefined) {
       let playerIdx;
-      if (idx === 0) playerIdx = active[0];
+      if (idx === 0)      playerIdx = active[0];
       else if (idx === 1) playerIdx = active[1];
-      else if (idx === 2 && cfg.mode === 3) playerIdx = active[2] !== undefined ? active[2] : resting;
+      else if (idx === 2 && cfg.mode === 3) playerIdx = resting;
       else return;
-
-      // Flash visual para confirmar que el Watch lo recibió
       flashPanel(playerIdx);
-      setTimeout(() => addPoint(playerIdx), 300);
+      setTimeout(() => addPoint(playerIdx), 250);
     }
-  }
 
-  if (params.has('deshacer')) {
-    if (!document.getElementById('setupScreen').classList.contains('hidden')) return;
-    flashUndo();
-    setTimeout(() => undo(), 300);
-  }
+    if (cmd === 'deshacer') {
+      flashUndo();
+      setTimeout(() => undo(), 250);
+    }
 
-  if (params.has('estado')) {
-    const p = cfg.players;
-    const msg = cfg.mode === 3
-      ? `${p[0].name}: ${scores[0]}\n${p[1].name}: ${scores[1]}\n${p[2].name}: ${scores[2]}`
-      : `${p[active[0]].name}: ${scores[active[0]]}\n${p[active[1]].name}: ${scores[active[1]]}`;
-    alert(`📊 Marcador actual\n\n${msg}`);
-  }
+  } catch(err) {}
+});
 
-  // Limpiar parámetros de la URL sin recargar la página
-  if (params.has('punto') || params.has('deshacer') || params.has('estado')) {
-    window.history.replaceState({}, '', window.location.pathname);
-  }
-}
-
-// Flash verde en el panel del jugador que sumó (feedback visual para Watch)
+// Flash visual en el panel del jugador
 function flashPanel(playerIdx) {
   const panel = document.getElementById(`panel${playerIdx}`);
   if (!panel) return;
   panel.style.transition = 'none';
-  panel.style.filter = 'brightness(2) saturate(0) invert(1)';
+  panel.style.filter = 'brightness(2.5) saturate(0)';
   setTimeout(() => {
     panel.style.transition = 'filter .4s';
     panel.style.filter = '';
@@ -1148,10 +1133,50 @@ function flashPanel(playerIdx) {
 function flashUndo() {
   const btn = document.querySelector('.btn-undo');
   if (!btn) return;
-  const orig = btn.style.background;
   btn.style.background = '#ff6b6b';
-  setTimeout(() => btn.style.background = orig, 400);
+  setTimeout(() => btn.style.background = '', 400);
 }
+
+/* ══════════════════════════════════════
+   RELAY — si esta página se abrió con
+   ?punto=X o ?deshacer, escribe el
+   comando en localStorage y muestra ✅
+══════════════════════════════════════ */
+(function handleRelay() {
+  const params = new URLSearchParams(window.location.search);
+  if (!params.has('punto') && !params.has('deshacer')) return;
+
+  // Escribir comando en localStorage — la pestaña del marcador lo detecta
+  let payload;
+  if (params.has('punto')) {
+    payload = { cmd: 'punto', idx: parseInt(params.get('punto')), ts: Date.now() };
+  } else {
+    payload = { cmd: 'deshacer', ts: Date.now() };
+  }
+  localStorage.setItem('squash_cmd', JSON.stringify(payload));
+
+  // Limpiar después de 1 segundo
+  setTimeout(() => localStorage.removeItem('squash_cmd'), 1000);
+
+  // Mostrar pantalla de confirmación y cerrar/volver
+  document.addEventListener('DOMContentLoaded', () => {}, false);
+  const label = params.has('deshacer') ? '↩ Deshecho' : '✅ Punto enviado';
+  document.body.innerHTML = `
+    <div style="height:100dvh;display:flex;flex-direction:column;
+      align-items:center;justify-content:center;background:#0a0a0f;
+      font-family:sans-serif;color:#00e676;gap:16px;text-align:center;">
+      <div style="font-size:64px;">${params.has('deshacer') ? '↩' : '✅'}</div>
+      <div style="font-size:22px;letter-spacing:3px;text-transform:uppercase;font-weight:700;">
+        ${label}
+      </div>
+      <div style="font-size:13px;color:#6b6b8a;letter-spacing:1px;margin-top:8px;">
+        Vuelve al marcador
+      </div>
+    </div>`;
+
+  // Intentar cerrar la pestaña automáticamente
+  setTimeout(() => { try { window.close(); } catch(e) {} }, 800);
+})();
 
 /* ══════════════════════════════════════
    INIT
@@ -1159,9 +1184,11 @@ function flashUndo() {
 render();
 showSetupScreen(false);
 
-// Procesar comandos del Watch después de iniciar
-// Pequeño delay para que el DOM esté listo
-setTimeout(handleWatchCommand, 500);
+/* ══════════════════════════════════════
+   INIT
+══════════════════════════════════════ */
+render();
+showSetupScreen(false);
 </script>
 </body>
 </html>

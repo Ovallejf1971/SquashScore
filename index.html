@@ -73,7 +73,7 @@ body {
 .panel {
   border-radius:14px; display:flex; flex-direction:column;
   align-items:center; justify-content:center;
-  position:relative; overflow:hidden; user-select:none;
+  position:relative; overflow:visible; user-select:none;
   transition:filter .1s, transform .08s;
   min-height:0; min-width:0;
 }
@@ -115,6 +115,44 @@ body {
 .tap-hint {
   position:absolute; bottom:6px; font-size:9px;
   letter-spacing:1px; text-transform:uppercase; color:rgba(255,255,255,.18);
+}
+
+/* ══ BARRA DE SAQUE FIJA ══ */
+.serve-bar {
+  flex-shrink: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 6px 14px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+}
+.serve-bar.visible { display: flex; }
+
+.serve-who {
+  font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--muted); white-space: nowrap;
+}
+.serve-who b { color: var(--text); }
+
+.sBtn {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 18px; letter-spacing: 2px;
+  width: 44px; height: 36px;
+  border-radius: 8px;
+  border: 2px solid rgba(255,255,255,.2);
+  background: rgba(255,255,255,.06);
+  color: rgba(255,255,255,.4);
+  cursor: pointer;
+  transition: all .15s;
+  display: flex; align-items: center; justify-content: center;
+}
+.sBtn.active-side {
+  background: #fff;
+  color: #000;
+  border-color: #fff;
+  transform: scale(1.08);
 }
 
 /* ══ CONTROLES ══ */
@@ -345,6 +383,13 @@ body {
 <div class="info-bar" id="infoBar">&nbsp;</div>
 <div class="set-bar"  id="setBar"></div>
 
+<!-- BARRA DE SAQUE — fija entre set-bar y court -->
+<div class="serve-bar" id="serveBar">
+  <button class="sBtn" id="sBtnL" onclick="setSide('L')">L</button>
+  <span class="serve-who" id="serveWho">saca</span>
+  <button class="sBtn" id="sBtnR" onclick="setSide('R')">R</button>
+</div>
+
 <!-- COURT — 3 paneles siempre en DOM -->
 <div class="court" id="court">
   <div class="panel" id="panel0" onclick="addPoint(0)">
@@ -519,6 +564,15 @@ let matchWinner = null;
 let history     = [];
 let setLog      = [];
 
+/* ══ SAQUE ══
+   server      = índice del jugador que saca ahora
+   serverSide  = 'R' (derecha) o 'L' (izquierda)
+   Al ganar punto: alterna lado
+   Al perder punto: el otro jugador saca, lado libre
+══════════════════════════════════════ */
+let server     = 0;   // quién saca
+let serverSide = 'R'; // desde qué lado
+
 /* ══ SETUP SCREEN STATE ══ */
 let setupMode       = 2;     // modo elegido en la pantalla
 let setupSelected   = [];    // índices elegidos como jugadores activos
@@ -679,9 +733,12 @@ function confirmSetup() {
     setLog  = [];
     round   = 1;
   } else {
-    // Entre sets: reiniciar ronda KotC
     if (cfg.mode === 3) round = 1;
   }
+
+  // El primer jugador seleccionado saca al inicio
+  server     = active[0];
+  serverSide = 'R';
 
   document.getElementById('setupScreen').classList.add('hidden');
 
@@ -716,13 +773,14 @@ function toggleVoice() {
    UNDO
 ══════════════════════════════════════ */
 function snap() {
-  history.push(JSON.parse(JSON.stringify({scores,setsWon,active,resting,round,matchWinner,setLog})));
+  history.push(JSON.parse(JSON.stringify({scores,setsWon,active,resting,round,matchWinner,setLog,server,serverSide})));
 }
 function undo() {
   if (!history.length) { showToast('No hay puntos para deshacer'); return; }
   const s = history.pop();
   scores=s.scores; setsWon=s.setsWon; active=s.active; resting=s.resting;
   round=s.round; matchWinner=s.matchWinner; setLog=s.setLog;
+  server=s.server; serverSide=s.serverSide;
   hideBanner();
   speak('Punto deshecho');
   showToast('↩ Punto deshecho');
@@ -730,7 +788,7 @@ function undo() {
 }
 
 /* ══════════════════════════════════════
-   ADD POINT
+   ADD POINT — función única y definitiva
 ══════════════════════════════════════ */
 function addPoint(playerIdx) {
   if (matchWinner !== null) return;
@@ -740,8 +798,22 @@ function addPoint(playerIdx) {
   if (cfg.mode === 2) {
     scores[playerIdx]++;
     const s0 = scores[active[0]], s1 = scores[active[1]];
-    speak(`${cfg.players[active[0]].name} ${s0}, ${cfg.players[active[1]].name} ${s1}`);
 
+    // Rotación de saque
+    if (playerIdx === server) {
+      // Ganó el servidor → sigue sirviendo, alterna lado
+      serverSide = serverSide === 'R' ? 'L' : 'R';
+    } else {
+      // Perdió el servidor → el otro pasa a sacar desde R por defecto
+      server     = playerIdx;
+      serverSide = 'R';
+    }
+
+    // Voz: primero marcador del servidor
+    const recv = active.find(i => i !== server);
+    speak(`${cfg.players[server].name} ${scores[server]}, ${cfg.players[recv].name} ${scores[recv]}`);
+
+    // ¿Ganó el set?
     const w0 = s0 >= cfg.pointsToWin && (s0-s1) >= cfg.diffToWin;
     const w1 = s1 >= cfg.pointsToWin && (s1-s0) >= cfg.diffToWin;
     if (w0 || w1) {
@@ -762,37 +834,32 @@ function addPoint(playerIdx) {
     }
 
   } else {
-    // King of the Court
-    const slot = active.indexOf(playerIdx);
-    scores[playerIdx]++;
-    const p = cfg.players;
-    speak(`${p[playerIdx].name}. ${p[0].name} ${scores[0]}, ${p[1].name} ${scores[1]}, ${p[2].name} ${scores[2]}`);
+    // ── King of the Court ──
+    const slot      = active.indexOf(playerIdx);
+    const winnerIdx = playerIdx;
+    const loserIdx  = active[1 - slot];
+    scores[winnerIdx]++;
 
-    const sorted = [...scores].sort((a,b)=>b-a);
+    const p = cfg.players;
+    speak(`${p[winnerIdx].name}. ${p[0].name} ${scores[0]}, ${p[1].name} ${scores[1]}, ${p[2].name} ${scores[2]}`);
+
+    // ¿Ganó el partido?
+    const sorted = [...scores].sort((a,b) => b-a);
     if (sorted[0] >= cfg.pointsToWin && (sorted[0]-sorted[1]) >= cfg.diffToWin) {
       matchWinner = scores.indexOf(sorted[0]);
       speak(`¡${p[matchWinner].name} gana el partido!`);
-      render(); showWin();
-      return;
+      render(); showWin(); return;
     }
 
-    const lIdx   = active[1-slot];
-    resting      = lIdx;
-    active[1-slot] = [0,1,2].find(x => x !== active[0] && x !== active[1] && x !== lIdx || x === resting);
-    // Corrección: el incoming es el que NO era activo antes del punto
-    const incoming = [0,1,2].find(x => !active.includes(x) && x !== resting);
-    // Rehacemos la rotación correctamente
-    const prevResting = [0,1,2].find(x => x !== active[0] && x !== active[1]);
-    active[1-slot] = prevResting !== undefined ? prevResting : active[1-slot];
-    resting = lIdx;
+    // Rotación: perdedor descansa, el que esperaba entra
+    const incomingIdx  = resting;
+    resting            = loserIdx;
+    active[1 - slot]   = incomingIdx;
     round++;
   }
+
   render();
 }
-
-/* ══════════════════════════════════════
-   RESET
-══════════════════════════════════════ */
 function confirmReset() {
   if (confirm('¿Reiniciar PARTIDO COMPLETO?\n\nSe borran sets, puntos e historial.')) {
     hideBanner();
@@ -800,6 +867,44 @@ function confirmReset() {
     active=[0,1]; resting=2;
     round=1; matchWinner=null; history=[]; setLog=[];
     showSetupScreen(false);
+  }
+}
+
+/* ══════════════════════════════════════
+   LADO DE SAQUE — barra fija
+══════════════════════════════════════ */
+function setSide(side) {
+  serverSide = side;
+  renderServe();
+}
+
+function renderServe() {
+  const bar    = document.getElementById('serveBar');
+  const btnL   = document.getElementById('sBtnL');
+  const btnR   = document.getElementById('sBtnR');
+  const who    = document.getElementById('serveWho');
+
+  // Solo mostrar en modo 2j y cuando el partido está activo
+  const inPlay = document.getElementById('setupScreen').classList.contains('hidden');
+  if (!inPlay || cfg.mode === 3 || matchWinner !== null) {
+    bar.classList.remove('visible');
+    return;
+  }
+
+  bar.classList.add('visible');
+  who.innerHTML = `🎾 <b>${cfg.players[server].name}</b> saca`;
+  btnL.classList.toggle('active-side', serverSide === 'L');
+  btnR.classList.toggle('active-side', serverSide === 'R');
+
+  // Resaltar el panel del servidor con borde más brillante
+  for (let i = 0; i < 3; i++) {
+    const p = document.getElementById(`panel${i}`);
+    if (!p) continue;
+    if (i === server) {
+      p.style.boxShadow = `0 0 0 3px ${cfg.players[i].color}, 0 0 16px ${cfg.players[i].color}88`;
+    } else {
+      p.style.boxShadow = 'none';
+    }
   }
 }
 
@@ -863,6 +968,9 @@ function render() {
     c.textContent = `Set ${i+1}: ${s}`;
     bar.appendChild(c);
   });
+
+  // Actualizar barra de saque
+  renderServe();
 }
 
 /* ══════════════════════════════════════
@@ -1013,67 +1121,6 @@ function stopConfetti(){
   if(_raf) cancelAnimationFrame(_raf);
   document.getElementById('confettiC').getContext('2d').clearRect(0,0,innerWidth,innerHeight);
 }
-
-/* ══════════════════════════════════════
-   KING OF THE COURT — rotación correcta
-══════════════════════════════════════ */
-// Reemplazamos la función addPoint con lógica de rotación limpia
-(function fixKotC() {
-  const orig = addPoint;
-  window.addPoint = function(playerIdx) {
-    if (matchWinner !== null) return;
-    if (!active.includes(playerIdx)) return;
-    snap();
-
-    if (cfg.mode === 2) {
-      scores[playerIdx]++;
-      const s0=scores[active[0]], s1=scores[active[1]];
-      speak(`${cfg.players[active[0]].name} ${s0}, ${cfg.players[active[1]].name} ${s1}`);
-      const w0=s0>=cfg.pointsToWin&&(s0-s1)>=cfg.diffToWin;
-      const w1=s1>=cfg.pointsToWin&&(s1-s0)>=cfg.diffToWin;
-      if (w0||w1) {
-        const wI=w0?active[0]:active[1];
-        setsWon[wI]++;
-        setLog.push(`${s0}-${s1}`);
-        if (setsWon[wI]>=cfg.setsToWin) {
-          matchWinner=wI;
-          speak(`¡${cfg.players[wI].name} gana el partido!`);
-          render(); showWin();
-        } else {
-          speak(`${cfg.players[wI].name} gana el set`);
-          showToast(`🏅 ${cfg.players[wI].name} gana el set`);
-          render();
-          setTimeout(()=>showSetupScreen(true),1000);
-        }
-        return;
-      }
-    } else {
-      // KotC — rotación limpia
-      const slot    = active.indexOf(playerIdx);  // 0 o 1
-      const winnerIdx = playerIdx;
-      const loserIdx  = active[1-slot];
-      scores[winnerIdx]++;
-
-      const p=cfg.players;
-      speak(`${p[winnerIdx].name}. ${p[0].name} ${scores[0]}, ${p[1].name} ${scores[1]}, ${p[2].name} ${scores[2]}`);
-
-      // ¿Ganó el partido?
-      const sorted=[...scores].sort((a,b)=>b-a);
-      if (sorted[0]>=cfg.pointsToWin&&(sorted[0]-sorted[1])>=cfg.diffToWin) {
-        matchWinner=scores.indexOf(sorted[0]);
-        speak(`¡${p[matchWinner].name} gana el partido!`);
-        render(); showWin(); return;
-      }
-
-      // Rotación: el que perdió descansa, el que esperaba entra
-      const incomingIdx = resting;   // el que estaba en el banquillo
-      resting           = loserIdx;  // el perdedor va al banquillo
-      active[1-slot]    = incomingIdx; // el incoming ocupa el lugar del perdedor
-      round++;
-    }
-    render();
-  };
-})();
 
 /* ══════════════════════════════════════
    WATCH COMMAND — localStorage relay

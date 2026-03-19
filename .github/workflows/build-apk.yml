@@ -3,9 +3,6 @@ name: Build APK
 on:
   push:
     branches: [ main ]
-    paths:
-      - 'www/**'
-      - 'capacitor.config.json'
 
 jobs:
   build:

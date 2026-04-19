@@ -1,0 +1,38 @@
+{
+  "directivos": [
+    { "email": "arojas@solidaria.com.co", "alias": "Presidencia" },
+    { "email": "cpalacio@solidaria.com.co", "alias": "VP Comercial" },
+    { "email": "jzuluaga@solidaria.com.co", "alias": "VP Estrategia" },
+    { "email": "ibonilla@solidaria.com.co", "alias": "VP Técnico" },
+    { "email": "kasosa@solidaria.com.co", "alias": "Gestión Humana" },
+    { "email": "marroyave@solidaria.com.co", "alias": "VP Sector Solidario" },
+    { "email": "navelasquez@solidaria.com.co", "alias": "VP Financiera" }
+  ],
+  "equipo": [
+    { "email": "jgarcia@solidaria.com.co", "alias": "Coordinador Infraestructura TI", "area": "Infraestructura" },
+    { "email": "jplaza@solidaria.com.co", "alias": "Administrador Infraestructura", "area": "Infraestructura" },
+    { "email": "jdaguirre@solidaria.com.co", "alias": "Administrador Infraestructura", "area": "Infraestructura" },
+    { "email": "jeagutierrez@solidaria.com.co", "alias": "Administrador Infraestructura Nube", "area": "Infraestructura" },
+    { "email": "diegocepeda@solidaria.com.co", "alias": "Estaciones", "area": "Infraestructura" },
+    { "email": "edcamelo@solidaria.com.co", "alias": "Ingeniero Estaciones", "area": "Infraestructura" },
+    { "email": "dfrodriguez@solidaria.com.co", "alias": "Desarrollo", "area": "Desarrollo" },
+    { "email": "jhpuin@solidaria.com.co", "alias": "Desarrollo", "area": "Desarrollo" },
+    { "email": "mheredia@solidaria.com.co", "alias": "Líder Base de Datos", "area": "Base de Datos" },
+    { "email": "lverdugo@solidaria.com.co", "alias": "Profesional Base de Datos", "area": "Base de Datos" },
+    { "email": "evelasco@solidaria.com.co", "alias": "Profesional Base de Datos Junior", "area": "Base de Datos" },
+    { "email": "omurcia@solidaria.com.co", "alias": "Seguridad Informática", "area": "Seguridad" },
+    { "email": "gherrera@solidaria.com.co", "alias": "Líder Soporte", "area": "Soporte" },
+    { "email": "lmunoz@solidaria.com.co", "alias": "Soporte", "area": "Soporte" },
+    { "email": "ext.jsgomez@solidaria.com.co", "alias": "Servicios TI", "area": "Servicios TI" },
+    { "email": "danaguilera@solidaria.com.co", "alias": "Servicios TI", "area": "Servicios TI" },
+    { "email": "danortiz@solidaria.com.co", "alias": "Servicios TI", "area": "Servicios TI" },
+    { "email": "ext.joarrieta@solidaria.com.co", "alias": "Servicios TI", "area": "Servicios TI" },
+    { "email": "jediaz@solidaria.com.co", "alias": "Servicios TI", "area": "Servicios TI" },
+    { "email": "judrodriguez@solidaria.com.co", "alias": "Servicios TI", "area": "Servicios TI" },
+    { "email": "ext.niobando@solidaria.com.co", "alias": "Servicios TI", "area": "Servicios TI" },
+    { "email": "rsilva@solidaria.com.co", "alias": "Servicios TI", "area": "Servicios TI" }
+  ],
+  "planner": {
+    "grupo": "Gerencia de Operaciones de TI y ciberseguridad"
+  }
+}

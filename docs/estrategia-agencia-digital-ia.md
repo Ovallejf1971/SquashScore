@@ -1,42 +1,23 @@
-# ESTRATEGIA INTEGRAL: Agencia de Capacidades Digitales con IA
+# ESTRATEGIA INTEGRAL: Picard-IA — Agencia de Capacidades Digitales con IA
 
 ---
 
-## 0. NOMBRE DE LA AGENCIA - PROPUESTAS
+## 0. NOMBRE DE LA AGENCIA
 
-### Criterios para el nombre
-- Fácil de recordar y pronunciar (español e inglés)
-- Que evoque transformación, tecnología, resultados
-- Dominio .com o .co disponible (verificar al elegir)
-- Que funcione como marca en redes sociales (@handle único)
+### Nombre elegido: **Picard-IA**
 
-### Propuestas
+> *"Inteligencia con picardía"*
 
-| Nombre | Concepto | Tono |
-|--------|----------|------|
-| **Pulso Digital** | El pulso = vida, ritmo, medición. "Le tomamos el pulso digital a tu negocio" | Profesional, cercano |
-| **Nexo IA** | Conexión entre tu negocio y la inteligencia artificial | Tech, moderno |
-| **Eleva Digital** | Elevar = subir de nivel, crecer | Aspiracional, claro |
-| **Código Naranja** | Urgencia + color Colombia + código = tecnología | Bold, memorable, patriótico |
-| **Impulsa AI** | Acción directa, fácil de entender | Directo, comercial |
-| **Digitta** | Digital + "it" (hacerlo). Suena como marca premium | Startup, premium |
-| **Score Digital** | Tu framework de diagnóstico SE CONVIERTE en la marca | Estratégico, coherente |
-| **Brota Digital** | Crecer, nacer, florecer. Orgánico + tech | Fresco, LATAM |
-| **Zetta Labs** | Zetta = escala masiva. Labs = innovación | Tech, enterprise |
-| **Onda Digital** | Onda = tendencia, frecuencia, vibra. "Está en onda" | Joven, accesible |
-
-### Mi recomendación: **Score Digital** o **Pulso Digital**
-
-**Score Digital** porque:
-- El "Score Digital" (diagnóstico) ya es tu producto estrella y puerta de entrada
-- La marca y el producto se refuerzan mutuamente
-- "¿Cuál es tu Score Digital?" es un hook perfecto para redes
-- Suena profesional en español e inglés
-
-**Pulso Digital** como alternativa porque:
-- "Tomar el pulso" es una metáfora universal que todos entienden
-- Funciona para diagnóstico Y para monitoreo continuo (retainer)
-- Es más amplio si quieres expandir más allá del diagnóstico
+- **Concepto**: Fusión de picardía (astucia, ingenio, irreverencia) + IA (inteligencia artificial)
+- **Tono**: Irreverente, desafiante, memorable, colombiano
+- **Taglines candidatos**:
+  - "Inteligencia con picardía"
+  - "La IA con actitud"
+  - "Tu negocio necesita más picardía digital"
+  - "Con toda la picardía: transformamos tu negocio"
+- **Dominios a verificar**: picard-ia.com, picardia.co, picard-ia.co
+- **Handles redes**: @picardia.digital, @picard.ia, @picardiaagencia
+- **Estado**: Provisional (en evaluación)
 
 ---
 

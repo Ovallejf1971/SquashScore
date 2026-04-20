@@ -1,5 +1,5 @@
-# Plan de Negocio: Agencia de Capacidades Digitales con IA
-## "Score Squash Digital Agency" (nombre provisional)
+# Plan de Negocio: Picard-IA — Agencia de Capacidades Digitales con IA
+## "Inteligencia con picardía" (nombre provisional)
 
 ---
 

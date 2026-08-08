@@ -774,8 +774,21 @@ function confirmSetup() {
    VOZ
 ══════════════════════════════════════ */
 const synth = window.speechSynthesis;
+
+// En el APK, el WebView de Android no trae voces para speechSynthesis.
+// Si está el plugin nativo, se usa ese; en el navegador, el de siempre.
+const TTS = window.Capacitor?.Plugins?.TextToSpeech || null;
+
 function speak(txt) {
-  if (!voiceOn || !synth) return;
+  if (!voiceOn) return;
+
+  if (TTS) {
+    TTS.stop().catch(()=>{});
+    TTS.speak({ text: txt, lang: 'es-ES', rate: 1.0, pitch: 1.1 }).catch(()=>{});
+    return;
+  }
+
+  if (!synth) return;
   synth.cancel();
   const u = new SpeechSynthesisUtterance(txt);
   u.lang='es-ES'; u.rate=.95; u.pitch=1.1;

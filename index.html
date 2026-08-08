@@ -1225,6 +1225,20 @@ function applyCmd({ cmd, idx, ts }) {
     flashUndo();
     setTimeout(() => undo(), 250);
   }
+
+  // Nuevo partido sin tocar el celular: mismos jugadores y ajustes,
+  // marcador en cero. Por eso no pasa por confirmReset(), que abre
+  // un confirm() bloqueante y la pantalla de configuración.
+  if (cmd === 'reset') {
+    hideBanner();
+    scores = [0,0,0]; setsWon = [0,0,0];
+    round = 1; matchWinner = null; history = []; setLog = [];
+    if (cfg.mode === 3) { active = [0,1]; resting = 2; }
+    server = active[0]; serverSide = 'R';
+    render();
+    showToast('🔄 Partido nuevo');
+    speak('Partido nuevo. A jugar');
+  }
 }
 
 function conectarRelay() {

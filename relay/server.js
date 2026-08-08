@@ -74,6 +74,12 @@ function abrirStream(req, res, sala) {
   });
 }
 
+function textoOk(cmd) {
+  if (cmd === 'deshacer') return '↩ Deshecho';
+  if (cmd === 'reset')    return '🔄 Partido nuevo';
+  return '✅ Punto';
+}
+
 /* ── Comando: respuesta corta, la lee el Watch ── */
 function responderWatch(res, texto, code = 200, metodo = 'GET') {
   const cuerpo = texto + '\n';
@@ -118,8 +124,10 @@ function manejar(req, res) {
       payload = { cmd: 'punto', idx, ts: Date.now() };
     } else if (url.searchParams.has('deshacer')) {
       payload = { cmd: 'deshacer', ts: Date.now() };
+    } else if (url.searchParams.has('reset')) {
+      payload = { cmd: 'reset', ts: Date.now() };
     }
-    if (!payload) return responderWatch(res, 'Falta punto= o deshacer', 400, req.method);
+    if (!payload) return responderWatch(res, 'Falta punto=, deshacer o reset', 400, req.method);
 
     // Atajos manda GET + HEAD por cada toque. HEAD solo pregunta,
     // no debe cambiar nada: si lo dejamos pasar, suma el punto dos veces.
@@ -147,7 +155,7 @@ function manejar(req, res) {
         });
         return res.end();
       }
-      return responderWatch(res, payload.cmd === 'deshacer' ? '↩ Deshecho' : '✅ Punto', 200, req.method);
+      return responderWatch(res, textoOk(payload.cmd), 200, req.method);
     }
     ultimoCmd.set(huella, Date.now());
     if (ultimoCmd.size > 200) {           // no dejar crecer el mapa
@@ -177,7 +185,7 @@ function manejar(req, res) {
       });
       return res.end();
     }
-    return responderWatch(res, payload.cmd === 'deshacer' ? '↩ Deshecho' : '✅ Punto', 200, req.method);
+    return responderWatch(res, textoOk(payload.cmd), 200, req.method);
   }
 
   // Estático: el marcador y sus íconos, para probar en LAN sin dominio

@@ -1,0 +1,19 @@
+services:
+  squash-relay:
+    build: .
+    container_name: squash-relay
+    restart: unless-stopped
+    # Público: el Apple Watch llega directo desde la cancha.
+    ports:
+      - "8099:8080"
+      - "9443:8443"
+    volumes:
+      - /opt/squash-relay/certs:/certs:ro
+    environment:
+      - PORT=8080
+      - TLS_PORT=8443
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
